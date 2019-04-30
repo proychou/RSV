@@ -48,8 +48,8 @@
 
 
 #Test run
-# in_fastq_r1='/fh/fast/jerome_k/SR/ngs/illumina/proychou/190222_D00300_0682_BHTMLLBCX2/Unaligned/Project_jboonyar/Sample_GH100084/GH100084_GGAGATTC-GTTCAGAC_L002_R1_001.fastq.gz'
-# in_fastq_r2='/fh/fast/jerome_k/SR/ngs/illumina/proychou/190222_D00300_0682_BHTMLLBCX2/Unaligned/Project_jboonyar/Sample_GH100084/GH100084_GGAGATTC-GTTCAGAC_L002_R2_001.fastq.gz'
+# in_fastq_r1='/shared/ngs/illumina/ekmartin/180927_M03100_0353_000000000-C4NGK/Data/Intensities/BaseCalls/150016-4_S3_L001_R1_001.fastq.gz'
+# in_fastq_r2='/shared/ngs/illumina/ekmartin/180927_M03100_0353_000000000-C4NGK/Data/Intensities/BaseCalls/150016-4_S3_L001_R2_001.fastq.gz''
 # SLURM_CPUS_PER_TASK=8
 
 
@@ -95,22 +95,26 @@ printf "\n\nFastQC report on raw reads ... \n\n\n"
 mkdir -p ./fastqc_reports_raw
 fastqc $in_fastq_r1 $in_fastq_r2 -o ./fastqc_reports_raw -t $SLURM_CPUS_PER_TASK 
 
-#Remove optical duplicates -- TO DO 
-# printf "\n\nRemove optical duplicates from raw reads ... \n\n\n"
-# clumpify.sh in=reads.fq.gz out=clumped.fq.gz dedupe optical dist=40 spantiles=f
+#Remove optical duplicates
+printf "\n\nRemove optical duplicates from raw reads ... \n\n\n"
+mkdir -p ./deduped_fastq
+clumpify.sh in1=$in_fastq_r1 in2=$in_fastq_r2 out1='./deduped_fastq/'$sampname'_deduped_r1.fastq.gz' out2='./deduped_fastq/'$sampname'_deduped_r2.fastq.gz' dedupe 
 
 
 #Adapter trimming with bbduk
 printf "\n\nAdapter trimming ... \n\n\n"
 mkdir -p ./trimmed_fastq
-bbduk.sh in1=$in_fastq_r1 in2=$in_fastq_r2  out1='./trimmed_fastq/'$sampname'_trimmed_r1_tmp.fastq.gz' out2='./trimmed_fastq/'$sampname'_trimmed_r2_tmp.fastq.gz' ref=~/bbmap/resources/adapters.fa k=21 ktrim=r mink=4 hdist=2 tpe tbo overwrite=TRUE t=$SLURM_CPUS_PER_TASK 
-bbduk.sh in1='./trimmed_fastq/'$sampname'_trimmed_r1_tmp.fastq.gz' in2='./trimmed_fastq/'$sampname'_trimmed_r2_tmp.fastq.gz'  out1='./trimmed_fastq/'$sampname'_trimmed_r1.fastq.gz' out2='./trimmed_fastq/'$sampname'_trimmed_r2.fastq.gz' ref=~/bbmap/resources/adapters.fa k=21 ktrim=l mink=4 hdist=2 tpe tbo overwrite=TRUE t=$SLURM_CPUS_PER_TASK 
+bbduk.sh in1='./deduped_fastq/'$sampname'_deduped_r1.fastq.gz' in2='./deduped_fastq/'$sampname'_deduped_r2.fastq.gz'  out1='./trimmed_fastq/'$sampname'_trimmed_r1_tmp.fastq.gz' out2='./trimmed_fastq/'$sampname'_trimmed_r2_tmp.fastq.gz' ref=adapters,artifacts k=21 ktrim=r mink=4 hdist=2 overwrite=TRUE t=$SLURM_CPUS_PER_TASK 
+bbduk.sh in1='./trimmed_fastq/'$sampname'_trimmed_r1_tmp.fastq.gz' in2='./trimmed_fastq/'$sampname'_trimmed_r2_tmp.fastq.gz'  out1='./trimmed_fastq/'$sampname'_trimmed_r1.fastq.gz' out2='./trimmed_fastq/'$sampname'_trimmed_r2.fastq.gz' ref=adapters,artifacts k=21 ktrim=l mink=4 hdist=2 overwrite=TRUE t=$SLURM_CPUS_PER_TASK 
 rm './trimmed_fastq/'$sampname'_trimmed_r1_tmp.fastq.gz' './trimmed_fastq/'$sampname'_trimmed_r2_tmp.fastq.gz'
+
 
 #Quality trimming
 printf "\n\nQuality trimming ... \n\n\n"
 mkdir -p ./preprocessed_fastq
 bbduk.sh in1='./trimmed_fastq/'$sampname'_trimmed_r1.fastq.gz' in2='./trimmed_fastq/'$sampname'_trimmed_r2.fastq.gz' out1='./preprocessed_fastq/'$sampname'_preprocessed_paired_r1.fastq.gz' out2='./preprocessed_fastq/'$sampname'_preprocessed_paired_r2.fastq.gz' t=$SLURM_CPUS_PER_TASK qtrim=rl trimq=20 maq=10 overwrite=TRUE minlen=20
+
+
 
 #Use bbduk to filter reads that match RSV genomes -- ** not tested, needs edit **
 # if [[ $filter == "true" ]]
