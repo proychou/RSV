@@ -49,7 +49,7 @@
 
 #Test run
 # in_fastq_r1='/shared/ngs/illumina/ekmartin/180927_M03100_0353_000000000-C4NGK/Data/Intensities/BaseCalls/150016-4_S3_L001_R1_001.fastq.gz'
-# in_fastq_r2='/shared/ngs/illumina/ekmartin/180927_M03100_0353_000000000-C4NGK/Data/Intensities/BaseCalls/150016-4_S3_L001_R2_001.fastq.gz''
+# in_fastq_r2='/shared/ngs/illumina/ekmartin/180927_M03100_0353_000000000-C4NGK/Data/Intensities/BaseCalls/150016-4_S3_L001_R2_001.fastq.gz'
 # SLURM_CPUS_PER_TASK=8
 
 
