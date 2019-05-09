@@ -96,15 +96,16 @@ mkdir -p ./fastqc_reports_raw
 fastqc $in_fastq_r1 $in_fastq_r2 -o ./fastqc_reports_raw -t $SLURM_CPUS_PER_TASK 
 
 #Remove optical duplicates
-printf "\n\nRemove optical duplicates from raw reads ... \n\n\n"
-mkdir -p ./deduped_fastq
-clumpify.sh in1=$in_fastq_r1 in2=$in_fastq_r2 out1='./deduped_fastq/'$sampname'_deduped_r1.fastq.gz' out2='./deduped_fastq/'$sampname'_deduped_r2.fastq.gz' dedupe 
+# printf "\n\nRemove optical duplicates from raw reads ... \n\n\n"
+# mkdir -p ./deduped_fastq
+# clumpify.sh in1=$in_fastq_r1 in2=$in_fastq_r2 out1='./deduped_fastq/'$sampname'_deduped_r1.fastq.gz' out2='./deduped_fastq/'$sampname'_deduped_r2.fastq.gz' dedupe 
 
 
 #Adapter trimming with bbduk
 printf "\n\nAdapter trimming ... \n\n\n"
 mkdir -p ./trimmed_fastq
-bbduk.sh in1='./deduped_fastq/'$sampname'_deduped_r1.fastq.gz' in2='./deduped_fastq/'$sampname'_deduped_r2.fastq.gz'  out1='./trimmed_fastq/'$sampname'_trimmed_r1_tmp.fastq.gz' out2='./trimmed_fastq/'$sampname'_trimmed_r2_tmp.fastq.gz' ref=adapters,artifacts k=21 ktrim=r mink=4 hdist=2 overwrite=TRUE t=$SLURM_CPUS_PER_TASK 
+# bbduk.sh in1='./deduped_fastq/'$sampname'_deduped_r1.fastq.gz' in2='./deduped_fastq/'$sampname'_deduped_r2.fastq.gz'  out1='./trimmed_fastq/'$sampname'_trimmed_r1_tmp.fastq.gz' out2='./trimmed_fastq/'$sampname'_trimmed_r2_tmp.fastq.gz' ref=adapters,artifacts k=21 ktrim=r mink=4 hdist=2 overwrite=TRUE t=$SLURM_CPUS_PER_TASK 
+bbduk.sh in1=$in_fastq_r1 in2=$in_fastq_r2  out1='./trimmed_fastq/'$sampname'_trimmed_r1_tmp.fastq.gz' out2='./trimmed_fastq/'$sampname'_trimmed_r2_tmp.fastq.gz' ref=adapters,artifacts k=21 ktrim=r mink=4 hdist=2 overwrite=TRUE t=$SLURM_CPUS_PER_TASK 
 bbduk.sh in1='./trimmed_fastq/'$sampname'_trimmed_r1_tmp.fastq.gz' in2='./trimmed_fastq/'$sampname'_trimmed_r2_tmp.fastq.gz'  out1='./trimmed_fastq/'$sampname'_trimmed_r1.fastq.gz' out2='./trimmed_fastq/'$sampname'_trimmed_r2.fastq.gz' ref=adapters,artifacts k=21 ktrim=l mink=4 hdist=2 overwrite=TRUE t=$SLURM_CPUS_PER_TASK 
 rm './trimmed_fastq/'$sampname'_trimmed_r1_tmp.fastq.gz' './trimmed_fastq/'$sampname'_trimmed_r2_tmp.fastq.gz'
 
